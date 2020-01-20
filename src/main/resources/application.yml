@@ -2,8 +2,8 @@
 #선행 접두사가 소셜미디어 명
 facebook:
   client:
-    clientId:
-    clientSecret:
+    clientId: 465358593799840
+    clientSecret: a37286e3dae00dcdce628f40dfe363f5
     accessTokenUri: https://graph.facebook.com/oauth/access_token
     userAuthorizationUri: https://www.facebook.com/dialog/oauth?display=popup
     tokenName: oauth_token

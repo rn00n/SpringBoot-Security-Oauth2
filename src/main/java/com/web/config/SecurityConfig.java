@@ -4,7 +4,6 @@ import com.web.domain.enums.SocialType;
 import com.web.oauth.ClientResources;
 import com.web.oauth.UserTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +33,7 @@ import static com.web.domain.enums.SocialType.KAKAO;
 //1. 소셜미디어 리소스 정보를 빈으로 등록
 //2. 시큐리티 설정
 //3. OAuth2 설정
-
+//4. 페이지 권한 분리
 @Configuration
 @EnableWebSecurity //2. 웹에서 시큐리티 기능을 사용하겠다는 어노테이션
 @EnableOAuth2Client //3. 웹에서 OAuth2 기능을 사용하겠다는 어노테이션
@@ -59,6 +58,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             "/js/**",
                             "/console/**") //요청 패턴을 리스트 형식으로 설정한다.
                     .permitAll() //설정한 리퀘스트 패턴을 누구나 접근할 수 있도록 허용한다.
+                    //4.
+                    //각 소셜 미디어용 경로를 지정한다
+                    //hasAuthority() 메서드의 파라키터로 원하는 권한을 전달하여 해당 권한을 지닌 사용자만 경로를 사용할 수 있도록 통제
+                    .antMatchers("/facebook").hasAuthority(FACEBOOK.getRoleType())
+                    .antMatchers("/google").hasAuthority(GOOGLE.getRoleType())
+                    .antMatchers("/kakao").hasAuthority(KAKAO.getRoleType()) //
+
                     .anyRequest() //설정한 요청 이외의 리퀘스트 요청을 표현합니다.
                     .authenticated() //해당 요청은 인증된 사용자만 할 수 있다.
                 .and()
