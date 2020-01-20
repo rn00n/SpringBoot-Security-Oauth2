@@ -18,6 +18,7 @@ public class UserTokenService extends UserInfoTokenServices {
         super(resources.getResource().getUserInfoUri(), resources.getClient().getClientId());
         setAuthoritiesExtractor(new OAuth2AuthoritiesExtractor(socialType));
     }
+    //권한 네이밍을 알아서 일괄적으로 처리하도록 설정
     public static class OAuth2AuthoritiesExtractor implements AuthoritiesExtractor {
         private  String socialType;
 

@@ -4,6 +4,7 @@ import com.web.domain.enums.SocialType;
 import com.web.oauth.ClientResources;
 import com.web.oauth.UserTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -84,15 +85,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .csrf().disable();
     }
 //    3.
-    @Bean
 //    OAuth2 클라이언트용 시큐리티 필터인 OAuth2ClientContextFilter를 불러와서
 //    올바른 순서로 필터가 동작하도록 설정. 스프링 시큐리티 필터가 실행되기 전에 충분히 낮은 순서로 필터를 등록
+@Bean
     public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(filter);
         registration.setOrder(-100);
         return registration;
     }
+//    3.
 //    oauth2Filter()메서드는 오버로드 하여 두개가 정의
 //    오버로드2. 각소셜 미디어 필터를 리스트 형식으로 한꺼번에 설정하여 반환
     private Filter oauth2Filter() {
@@ -104,6 +106,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setFilters(filters);
         return filter;
     }
+//    3.
 //    오버로드1. 각 소셜 미디어 타입을 받아서 필터 설정을 할 수 있다.
     private Filter oauth2Filter(ClientResources client, String path, SocialType socialType) {
         //인증이 수행될 경로를 넣어 OAuth2 클라이언트용 인증 처리 필터를 생성

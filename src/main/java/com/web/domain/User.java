@@ -18,49 +18,52 @@ public class User implements Serializable {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
-    public Long getIdx(){
-        return idx;
-    }
 
     @Column
     private String name;
-    public String getName(){
-        return name;
-    }
 
     @Column
     private String password;
-    public String getPassword(){
-        return password;
-    }
 
     @Column
     private String email;
-    public String getEmail(){
-        return email;
-    }
 
     @Column
     private String principal;
-    public String getPrincipal(){
-        return principal;
-    }
 
     @Column
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
-    public SocialType getSocialType(){
-        return socialType;
-    }
 
     @Column
     private LocalDateTime createdDate;
-    public LocalDateTime getCreatedDate(){
-        return createdDate;
-    }
 
     @Column
     private LocalDateTime updatedDate;
+
+
+    /*Lombok 미작동으로인한 Getter*/
+    public Long getIdx(){
+        return idx;
+    }
+    public String getName(){
+        return name;
+    }
+    public String getPassword(){
+        return password;
+    }
+    public String getEmail(){
+        return email;
+    }
+    public String getPrincipal(){
+        return principal;
+    }
+    public SocialType getSocialType(){
+        return socialType;
+    }
+    public LocalDateTime getCreatedDate(){
+        return createdDate;
+    }
     public LocalDateTime getUpdatedDate(){
         return updatedDate;
     }
@@ -77,52 +80,53 @@ public class User implements Serializable {
         this.createdDate = createdDate;
         this.updatedDate = updatedDate;
     }
-    static class Builder{
-        private String name;
-        private String password;
-        private String email;
-        private String principal;
-        @Enumerated(EnumType.STRING)
-        private SocialType socialType;
-        private LocalDateTime createdDate;
-        private LocalDateTime updatedDate;
-
-        public Builder withName(String name){
-            this.name = name;
-            return this;
-        }
-        public Builder withPassword(String password){
-            this.password = password;
-            return this;
-        }
-        public Builder withEmail(String email){
-            this.email = email;
-            return this;
-        }
-        public Builder withPrincipal(String principal){
-            this.principal = principal;
-            return this;
-        }
-        public Builder withSocialType(SocialType socialType){
-            this.socialType  = socialType;
-            return this;
-        }
-        public Builder withCreatedDate(LocalDateTime createdDate){
-            this.createdDate = createdDate;
-            return this;
-        }
-        public Builder withUpdatedDate(LocalDateTime updatedDate){
-            this.updatedDate = updatedDate;
-            return this;
-        }
-        public User build(){
-            if(name==null || password==null || email==null || principal==null ||
-                    socialType==null || createdDate==null || updatedDate==null) {
-                throw new IllegalStateException("Cannot이다이다");
-            }
-            return new User(name, password, email, principal, socialType, createdDate, updatedDate);
-        }
-    }
+    /*Lombok 미작동으로인한 Builder class*/
+//    class Builder{
+//        private String name;
+//        private String password;
+//        private String email;
+//        private String principal;
+//        @Enumerated(EnumType.STRING)
+//        private SocialType socialType;
+//        private LocalDateTime createdDate;
+//        private LocalDateTime updatedDate;
+//
+//        public Builder withName(String name){
+//            this.name = name;
+//            return this;
+//        }
+//        public Builder withPassword(String password){
+//            this.password = password;
+//            return this;
+//        }
+//        public Builder withEmail(String email){
+//            this.email = email;
+//            return this;
+//        }
+//        public Builder withPrincipal(String principal){
+//            this.principal = principal;
+//            return this;
+//        }
+//        public Builder withSocialType(SocialType socialType){
+//            this.socialType  = socialType;
+//            return this;
+//        }
+//        public Builder withCreatedDate(LocalDateTime createdDate){
+//            this.createdDate = createdDate;
+//            return this;
+//        }
+//        public Builder withUpdatedDate(LocalDateTime updatedDate){
+//            this.updatedDate = updatedDate;
+//            return this;
+//        }
+//        public User build(){
+//            if(name==null || password==null || email==null || principal==null ||
+//                    socialType==null || createdDate==null || updatedDate==null) {
+//                throw new IllegalStateException("Cannot이다이다");
+//            }
+//            return new User(name, password, email, principal, socialType, createdDate, updatedDate);
+//        }
+//    }
 }
 /* 로그인과 관련하여 인증 및 권한이 추가되므로 User 테이블에 컬럼 추가
 *  OAuth2인증으로 제공받는 키 값인 principal
