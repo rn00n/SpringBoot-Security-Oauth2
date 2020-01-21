@@ -4,12 +4,13 @@ import com.web.annotation.SocialUser;
 import com.web.domain.User;
 import com.web.domain.enums.SocialType;
 import com.web.repository.UserRepository;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -18,11 +19,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import javax.servlet.http.HttpSession;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpSession;
 
 import static com.web.domain.enums.SocialType.FACEBOOK;
 import static com.web.domain.enums.SocialType.GOOGLE;
@@ -44,6 +45,7 @@ import static com.web.domain.enums.SocialType.KAKAO;
 public class UserArgumentResolver implements HandlerMethodArgumentResolver {
     //.
     private UserRepository userRepository;
+
     public UserArgumentResolver(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -51,6 +53,7 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
     //2.
     //MethodParameter 로 파라미터의 정보를 받는다
     //처음 한 번 체크된 부분은 캐시되어 이후의 동일호출 시에 체크되지 않고 캐시된 결과값을 바로 반환
+    @Override
     public boolean supportsParameter(MethodParameter parameter) {
         //2.
         //@SocialUser.class 를 명시
@@ -60,8 +63,8 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
 
     //3.
     //resolveArgument() 메서드는 검증이 완료된 파라미터 정보를 받는다
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         //3.
         //이미 검증이 되어 세션에 해당 User 객체가 있으면 User 객체를 구성하는 로직을 수행하지 않도록 세션을 먼저 확인하는 로직
         //세션은 RequestContextholder 를 사용해서 가져올 수 있다.
@@ -79,16 +82,16 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
     //또한 각 소셜 미디어마다 다른 네이밍 방식을 취하고 있다.
     private User getUser(User user, HttpSession session) {
         //4. 세션에 User 객체가 없을 때 만 로직이 수행
-        if (user == null) {
+        if(user == null) {
             try {
                 //SecurityContextHolder 를 사용해 인증된 OAuth2Authentication 객체를 가져온다
-                OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
+                OAuth2AuthenticationToken authentication = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
                 //가져온 OAuth2Authentication 객체에서 getDetails() 메서드를 사용해 개인정보를 Map 타입으로 매핑한다.
-                Map<String, String> map = (HashMap<String, String>) authentication.getUserAuthentication().getDetails();
+                Map<String, Object> map = authentication.getPrincipal().getAttributes();
                 //convertUser() 메서드에 어떤 소셜 미디어로 인증을 받았는지
                 //=> String.valueOf(authentication.getAuthorities().toArray()[0]) 로 불러온다.
                 //*이 예제 에서는 이전에 넣어주었던 권한이 하나뿐이라서 배열의 첫 번째 값만 불러오도록 작성하였다
-                User convertUser = convertUser(String.valueOf(authentication.getAuthorities().toArray()[0]), map);
+                User convertUser = convertUser(authentication.getAuthorizedClientRegistrationId(), map);
 
                 //여기서는 소셜에 항상 이메일 정보를 제공한다는 조건하에 작성한다.
                 user = userRepository.findByEmail(convertUser.getEmail());
@@ -100,7 +103,7 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
 
                 setRoleIfNotSame(user, authentication, map);
                 session.setAttribute("user", user);
-            }catch (ClassCastException e) {
+            } catch (ClassCastException e) {
                 return user;
             }
         }
@@ -110,47 +113,44 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
     //4.
     //사용자의 인증된 소셜 미디어 타입에 따라 빌더를 사요하여 User 객체를 만들어 주는 가교 역할을 한다.
     //카카오톡은 별도의 메서드를 사용
-    private User convertUser(String authority, Map<String, String> map) {
+    private User convertUser(String authority, Map<String, Object> map) {
         if(FACEBOOK.isEquals(authority)) return getModernUser(FACEBOOK, map);
         else if(GOOGLE.isEquals(authority)) return getModernUser(GOOGLE, map);
-        else if(KAKAO.isEquals(authority)) return getKakaoUser(map);
+        else if(KAKAO.isEquals(authority)) return getKaKaoUser(map);
         return null;
     }
 
     //4.
     //페이스북과 구글의 명명규칙을 가진 그룹을 User 객체로 매핑
-    private User getModernUser(SocialType socialType, Map<String, String> map) {
-//        return User.builder()
-//                .name(map.get("name"))
-//                .email(map.get("email"))
-//                .principal(map.get("id"))
-//                .socialType(socialType)
-//                .createdDate(LocalDateTime.now())
-//                .build();
-        return new User(map.get("name"), null, map.get("email"), map.get("id"), socialType, LocalDateTime.now(), null);
+    private User getModernUser(SocialType socialType, Map<String, Object> map) {
+        return User.builder()
+                .name(String.valueOf(map.get("name")))
+                .email(String.valueOf(map.get("email")))
+                .pincipal(String.valueOf(map.get("id")))
+                .socialType(socialType)
+                .createdDate(LocalDateTime.now())
+                .build();
     }
 
     //4.
     //명명규칙이 다른 카카오톡을 User 객체로 매핑
-    private User getKakaoUser(Map<String, String> map) {
-        HashMap<String, String> propertyMap = (HashMap<String, String>)(Object)map.get("properties");
-//        return new User.builder()
-//                .name(propertyMap.get("nickname"))
-//                .email(map.get("kaccount_email"))
-//                .principal(String.valueOf(map.get("id")))
-//                .socialType(KAKAO)
-//                .createdDate(LocalDateTime.now())
-//                .build();
-        return new User(propertyMap.get("nickname"), null, map.get("kaccount_email"), String.valueOf(map.get("id")), KAKAO, LocalDateTime.now(), null);
+    private User getKaKaoUser(Map<String, Object> map) {
+        Map<String, String> propertyMap = (HashMap<String, String>) map.get("properties");
+        return User.builder()
+                .name(propertyMap.get("nickname"))
+                .email(String.valueOf(map.get("kaccount_email")))
+                .pincipal(String.valueOf(map.get("id")))
+                .socialType(KAKAO)
+                .createdDate(LocalDateTime.now())
+                .build();
     }
 
     //4.
     //인증된 authentication 이 권한을 갖고 있는지 체크하는 용도로 쓰인다.
     //만약 저장된 User 권한이 없으면 SecurityContextHolder 를 사용하여 해당 소셜 미디어 타입으로 권한을 저장
-    private void setRoleIfNotSame(User user, OAuth2Authentication authentication, Map<String, String> map) {
+    private void setRoleIfNotSame(User user, OAuth2AuthenticationToken authentication, Map<String, Object> map) {
         if(!authentication.getAuthorities().contains(new SimpleGrantedAuthority(user.getSocialType().getRoleType()))) {
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(map, "N/A",
-                    AuthorityUtils.createAuthorityList(user.getSocialType().getRoleType())));
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(map, "N/A", AuthorityUtils.createAuthorityList(user.getSocialType().getRoleType())));
         }
     }
 }

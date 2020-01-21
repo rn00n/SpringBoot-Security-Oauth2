@@ -1,19 +1,22 @@
 package com.web.domain;
 
 import com.web.domain.enums.SocialType;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+import javax.persistence.*;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
 @Entity
 @Table
 public class User implements Serializable {
+
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +32,7 @@ public class User implements Serializable {
     private String email;
 
     @Column
-    private String principal;
+    private String pincipal;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -41,93 +44,14 @@ public class User implements Serializable {
     @Column
     private LocalDateTime updatedDate;
 
-
-    /*Lombok 미작동으로인한 Getter*/
-    public Long getIdx(){
-        return idx;
-    }
-    public String getName(){
-        return name;
-    }
-    public String getPassword(){
-        return password;
-    }
-    public String getEmail(){
-        return email;
-    }
-    public String getPrincipal(){
-        return principal;
-    }
-    public SocialType getSocialType(){
-        return socialType;
-    }
-    public LocalDateTime getCreatedDate(){
-        return createdDate;
-    }
-    public LocalDateTime getUpdatedDate(){
-        return updatedDate;
-    }
-
-
-//    lombok이 작동을 안한다
-//    @Builder
-    public User(String name, String password, String email, String principal, SocialType socialType, LocalDateTime createdDate, LocalDateTime updatedDate) {
+    @Builder
+    public User(String name, String password, String email, String pincipal, SocialType socialType, LocalDateTime createdDate, LocalDateTime updatedDate) {
         this.name = name;
         this.password = password;
         this.email = email;
-        this.principal = principal;
+        this.pincipal = pincipal;
         this.socialType = socialType;
         this.createdDate = createdDate;
         this.updatedDate = updatedDate;
     }
-    /*Lombok 미작동으로인한 Builder class*/
-//    class Builder{
-//        private String name;
-//        private String password;
-//        private String email;
-//        private String principal;
-//        @Enumerated(EnumType.STRING)
-//        private SocialType socialType;
-//        private LocalDateTime createdDate;
-//        private LocalDateTime updatedDate;
-//
-//        public Builder withName(String name){
-//            this.name = name;
-//            return this;
-//        }
-//        public Builder withPassword(String password){
-//            this.password = password;
-//            return this;
-//        }
-//        public Builder withEmail(String email){
-//            this.email = email;
-//            return this;
-//        }
-//        public Builder withPrincipal(String principal){
-//            this.principal = principal;
-//            return this;
-//        }
-//        public Builder withSocialType(SocialType socialType){
-//            this.socialType  = socialType;
-//            return this;
-//        }
-//        public Builder withCreatedDate(LocalDateTime createdDate){
-//            this.createdDate = createdDate;
-//            return this;
-//        }
-//        public Builder withUpdatedDate(LocalDateTime updatedDate){
-//            this.updatedDate = updatedDate;
-//            return this;
-//        }
-//        public User build(){
-//            if(name==null || password==null || email==null || principal==null ||
-//                    socialType==null || createdDate==null || updatedDate==null) {
-//                throw new IllegalStateException("Cannot이다이다");
-//            }
-//            return new User(name, password, email, principal, socialType, createdDate, updatedDate);
-//        }
-//    }
 }
-/* 로그인과 관련하여 인증 및 권한이 추가되므로 User 테이블에 컬럼 추가
-*  OAuth2인증으로 제공받는 키 값인 principal
-*  어떤 소셜 미디어로 인증 받았는지 구분하는 socialType 컬럼 추가*/

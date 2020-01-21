@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 //간단하게 RestController로 만들어서 경로만 받고 해당하는 경로의 소셜 미디어 타입값만 반환하도록 처리
 @RestController
 public class AuthorityTestController {
+
     @GetMapping("/facebook")
     public String facebook() {
         return "facebook";
